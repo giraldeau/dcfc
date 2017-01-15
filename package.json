@@ -2,6 +2,7 @@
   "name": "dcfc",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://giraldeau.github.io/dcfc-web",
   "devDependencies": {
     "react-scripts": "0.8.4"
   },

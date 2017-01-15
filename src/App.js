@@ -56,16 +56,82 @@ class CarSelector extends Component {
   }
 }
 
-class Range {
+const secondsToTime = (secs) => {
+  secs = Math.round(secs);
+  var hours = Math.floor(secs / (60 * 60));
+
+  var divisor_for_minutes = secs % (60 * 60);
+  var minutes = Math.floor(divisor_for_minutes / 60);
+
+  var divisor_for_seconds = divisor_for_minutes % 60;
+  var seconds = Math.ceil(divisor_for_seconds);
+
+  var obj = {
+      "h": hours,
+      "m": minutes,
+      "s": seconds
+  };
+  return obj;
+}
+
+const formatChargeTime = (secs) => {
+  secs = Math.ceil(secs / 60) * 60;
+  const t = secondsToTime(secs);
+  var str = t.m + " m";
+  if ((secs / 3600) > 1) {
+    str = t.h + " h " + str;
+  }
+  return str;
+}
+
+class StatisticPannel extends Component {
   render() {
     return (
-      null
+      <div className="ui statistics">
+        <div className="statistic">
+          <div className="value">
+            <i className="hourglass empty icon"></i> {formatChargeTime(this.props.time)}
+          </div>
+          <div className="label">
+            Time
+          </div>
+        </div>
+
+        <div className="statistic">
+          <div className="value">
+            <i className="high battery icon"></i> {Math.max(0, this.props.kwh).toFixed(1)}
+          </div>
+          <div className="label">
+            kWh
+          </div>
+        </div>
+
+        <div className="statistic">
+          <div className="value">
+            <i className="dollar icon"></i> {Math.max(0, this.props.cost).toFixed(2)}
+          </div>
+          <div className="label">
+            Cost
+          </div>
+        </div>
+      </div>
     );
   }
 }
 
-class App extends Component {
+StatisticPannel.propTypes = {
+  kwh: React.PropTypes.number,
+  time: React.PropTypes.number,
+  cost: React.PropTypes.number,
+};
 
+StatisticPannel.defaultProps = {
+  kwh: 0,
+  time: 0,
+  cost: 0,
+};
+
+class App extends Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -89,8 +155,9 @@ class App extends Component {
   }
 
   handleCarChange(carId) {
-    this.setState({ carId });
-    this.updateStatistics();
+    this.setState({ carId }, () => {
+      this.updateStatistics();
+    });
   }
 
   handleSOCChange(type, value) {
@@ -131,34 +198,6 @@ class App extends Component {
     this.setState({ chargeTime });
   }
 
-  secondsToTime(secs) {
-    secs = Math.round(secs);
-    var hours = Math.floor(secs / (60 * 60));
-
-    var divisor_for_minutes = secs % (60 * 60);
-    var minutes = Math.floor(divisor_for_minutes / 60);
-
-    var divisor_for_seconds = divisor_for_minutes % 60;
-    var seconds = Math.ceil(divisor_for_seconds);
-
-    var obj = {
-        "h": hours,
-        "m": minutes,
-        "s": seconds
-    };
-    return obj;
-  }
-
-  formatChargeTime(secs) {
-    secs = Math.ceil(secs / 60) * 60;
-    const t = this.secondsToTime(secs);
-    var str = t.m + " m";
-    if ((secs / 3600) > 1) {
-      str = t.h + " h " + str;
-    }
-    return str;
-  }
-
   computeChargingCost(secs, pricePerHour) {
     const pricePerSeconds = pricePerHour / 3600;
     return (secs * pricePerSeconds);
@@ -169,6 +208,7 @@ class App extends Component {
       step: 1, 
       min: 0,
       max: 98,
+      thumbSize: 18,
     };
     const car = carData[this.state.carId];
     const energy = car.battUsable * (this.state.socEnd - this.state.socStart) / 100;
@@ -183,7 +223,7 @@ class App extends Component {
           onChange={(value) => {
             this.handleCarChange(value);
           }}/>
-        <Divider />
+        
         <label>Battery at start: {this.state.socStart} %</label>
         <ReactSimpleRange
           {...rangeOptions}
@@ -197,11 +237,12 @@ class App extends Component {
           onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
         />
         <Button content='Reset' onClick={(event) => {this.handleSOCReset()}}/>
-        <h1>{this.formatChargeTime(this.state.chargeTime)}</h1>
-        <h1>{Math.max(0, energy).toFixed(1)} kWh</h1>
-        <h1>{Math.max(0, cost).toFixed(2)} $</h1>
-        <h1>{Math.max(0, costPerUnit).toFixed(2)} $/kWh</h1>
-        <h1>{1e3}</h1>
+        <Divider />
+        <StatisticPannel
+          time={this.state.chargeTime}
+          kwh={energy}
+          cost={cost}
+        />
       </Container>
     );
   }
