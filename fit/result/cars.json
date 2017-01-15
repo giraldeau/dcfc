@@ -1,12 +1,5 @@
 [
   {
-    "id": 0,
-    "model": "Spark EV",
-    "path": "sparkev.csv",
-    "label": "sparkev",
-    "battUsable": 17.4,
-    "battTotal": 19,
-    "maker": "Chevrolet",
     "f": [
       -1.467600773010106e-05,
       0.0013374192048236325,
@@ -16,16 +9,17 @@
       7.223154797252288,
       76.4673424751008,
       2.8348569314585643
-    ]
+    ],
+    "path": "sparkev.csv",
+    "id": 0,
+    "label": "sparkev",
+    "battTotal": 19,
+    "model": "Spark EV",
+    "maker": "Chevrolet",
+    "battUsable": 17.4,
+    "efficiency": 150
   },
   {
-    "id": 1,
-    "model": "LEAF",
-    "path": "leaf24.csv",
-    "label": "leaf24",
-    "battUsable": 21.3,
-    "battTotal": 24,
-    "maker": "Nissan",
     "f": [
       0.000259470152268406,
       -0.019963298801596092,
@@ -35,6 +29,14 @@
       -310.85966490999357,
       549.3142888940724,
       -0.27079438494895147
-    ]
+    ],
+    "path": "leaf24.csv",
+    "id": 1,
+    "label": "leaf24",
+    "battTotal": 24,
+    "model": "LEAF",
+    "maker": "Nissan",
+    "battUsable": 21.3,
+    "efficiency": 180
   }
 ]

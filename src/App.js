@@ -89,20 +89,34 @@ const formatChargeTime = (secs) => {
 
 class StatisticPannel extends Component {
   render() {
+    var costPerKm = 0;
+    if (this.props.range > 0) {
+      costPerKm = this.props.cost / this.props.range;
+    }
+
     return (
       <div className="ui horizontal statistics">
         <div className="statistic">
           <div className="value">
-            <i className="hourglass empty icon"></i> {formatChargeTime(this.props.time)}
+            {formatChargeTime(this.props.time)}
           </div>
-          <div className="label lowercase">
+          <div className="label">
             Time
           </div>
         </div>
 
         <div className="statistic">
           <div className="value">
-            <i className="high battery icon"></i> {Math.max(0, this.props.kwh).toFixed(1)}
+            {Math.max(0, this.props.range).toFixed(0)}
+          </div>
+          <div className="label">
+            added range (km)
+          </div>
+        </div>
+
+        <div className="statistic">
+          <div className="value">
+            {Math.max(0, this.props.kwh).toFixed(1)}
           </div>
           <div className="label">
             kWh
@@ -111,12 +125,22 @@ class StatisticPannel extends Component {
 
         <div className="statistic">
           <div className="value">
-            <i className="dollar icon"></i> {Math.max(0, this.props.cost).toFixed(2)}
+            {Math.max(0, this.props.cost).toFixed(2)}
           </div>
           <div className="label">
-            Cost
+            $
           </div>
         </div>
+
+        <div className="statistic">
+          <div className="value">
+            {Math.max(0, costPerKm).toFixed(4)}
+          </div>
+          <div className="label">
+            $/km
+          </div>
+        </div>
+
       </div>
     );
   }
@@ -126,12 +150,14 @@ StatisticPannel.propTypes = {
   kwh: React.PropTypes.number,
   time: React.PropTypes.number,
   cost: React.PropTypes.number,
+  range: React.PropTypes.number,
 };
 
 StatisticPannel.defaultProps = {
   kwh: 0,
   time: 0,
   cost: 0,
+  range: 0,
 };
 
 class App extends Component {
@@ -142,7 +168,7 @@ class App extends Component {
       carId: 0,
       socStart: 10,
       socEnd: 80,
-      chargeTime: 0,
+      efficiency: carData[0].efficiency,
     }
 
     this.state = Object.assign({}, this.defaultState);
@@ -153,14 +179,9 @@ class App extends Component {
     });
   }
 
-  componentWillMount() {
-    this.updateStatistics();
-  }
-
   handleCarChange(carId) {
-    this.setState({ carId }, () => {
-      this.updateStatistics();
-    });
+    const car = carData[carId];
+    this.setState({ carId, efficiency: car.efficiency });
   }
 
   handleSOCChange(type, value) {
@@ -178,29 +199,28 @@ class App extends Component {
       }
     }
 
-    this.setState(state, () => {
-      this.updateStatistics();
-    });
+    this.setState(state);
   }
 
-  handleSOCReset() {
+  handleReset() {
+    const car = carData[this.state.carId];
     this.setState({
       socStart: this.defaultState.socStart,
       socEnd: this.defaultState.socEnd,
-    }, () => {
-      this.updateStatistics();
+      efficiency: car.efficiency,
     });
   }
 
-  updateStatistics() {
-    const car = carData[this.state.carId];
-    const e1 = car.battUsable * this.state.socStart / 100;
-    const e2 = car.battUsable * this.state.socEnd / 100;
+  handleEfficiencyChange(efficiency) {
+    this.setState({ efficiency });
+  }
+
+  computeChargingTime(car, socStart, socEnd) {
+    const e1 = car.battUsable * socStart / 100;
+    const e2 = car.battUsable * socEnd / 100;
     const t1 = polyval(car.f, e1);
     const t2 = polyval(car.f, e2);
-    console.log(e1 + " " + e2 + " " + t1 + " " + t2);
-    const chargeTime = t2 - t1;
-    this.setState({ chargeTime });
+    return (t2 - t1);
   }
 
   computeChargingCost(secs, pricePerHour) {
@@ -209,7 +229,7 @@ class App extends Component {
   }
 
   render() {
-    const rangeOptions = {
+    const socOptions = {
       step: 1, 
       min: 0,
       max: 98,
@@ -217,8 +237,10 @@ class App extends Component {
     };
     const car = carData[this.state.carId];
     const energy = car.battUsable * (this.state.socEnd - this.state.socStart) / 100;
-    const cost = this.computeChargingCost(this.state.chargeTime, 10);
-    const costPerUnit = cost / energy;
+    const chargingTime = this.computeChargingTime(car, this.state.socStart, this.state.socEnd);
+    const cost = this.computeChargingCost(chargingTime, 10);
+    const addedRange = energy / this.state.efficiency * 1000;
+
     return (
       <Container text>
         <AppHeader title={"DCFC Time Calculator"} />
@@ -231,22 +253,36 @@ class App extends Component {
         
         <label>Battery at start: {this.state.socStart} %</label>
         <ReactSimpleRange
-          {...rangeOptions}
+          {...socOptions}
           defaultValue={this.state.socStart}
           onChange={(event) => {this.handleSOCChange("socStart", event.value)}}
         />
+
         <label>Battery at end: {this.state.socEnd} %</label>
         <ReactSimpleRange
-          {...rangeOptions}
+          {...socOptions}
           defaultValue={this.state.socEnd}
           onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
         />
-        <Button content='Reset' onClick={(event) => {this.handleSOCReset()}}/>
+
+        <label>Efficiency: {this.state.efficiency} Wh/km</label>
+        <ReactSimpleRange
+          step={1}
+          min={80}
+          max={300}
+          thumbSize={socOptions.thumbSize}
+          defaultValue={this.state.efficiency}
+          onChange={(event) => {this.handleEfficiencyChange(event.value)}}
+        />
+
+        <Button content='Reset' onClick={(event) => {this.handleReset()}}/>
+
         <Divider />
         <StatisticPannel
-          time={this.state.chargeTime}
-          kwh={energy}
+          time={chargingTime}
+          range={addedRange}
           cost={cost}
+          kwh={energy}
         />
       </Container>
     );

@@ -17,6 +17,7 @@ cars = [
 		"label": "sparkev",
 		"battTotal": 19,
 		"battUsable": 17.4,
+		"efficiency": 150,
 		"path": "sparkev.csv"
 	},
 	{ 
@@ -26,6 +27,7 @@ cars = [
 		"label": "leaf24",
 		"battTotal": 24,
 		"battUsable": 21.3,
+		"efficiency": 180,
 		"path": "leaf24.csv"
 	},
 #	{ 
