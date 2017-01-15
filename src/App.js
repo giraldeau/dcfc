@@ -75,9 +75,12 @@ const secondsToTime = (secs) => {
 }
 
 const formatChargeTime = (secs) => {
-  secs = Math.ceil(secs / 60) * 60;
+  //secs = Math.ceil(secs / 60) * 60;
   const t = secondsToTime(secs);
-  var str = t.m + " m";
+  var str = t.s + " s";
+  if ((secs / 60) > 1) {
+    str = t.m + " m " + str;
+  }
   if ((secs / 3600) > 1) {
     str = t.h + " h " + str;
   }
@@ -87,12 +90,12 @@ const formatChargeTime = (secs) => {
 class StatisticPannel extends Component {
   render() {
     return (
-      <div className="ui statistics">
+      <div className="ui horizontal statistics">
         <div className="statistic">
           <div className="value">
             <i className="hourglass empty icon"></i> {formatChargeTime(this.props.time)}
           </div>
-          <div className="label">
+          <div className="label lowercase">
             Time
           </div>
         </div>
@@ -175,16 +178,18 @@ class App extends Component {
       }
     }
 
-    this.setState(state);
-    this.updateStatistics();
+    this.setState(state, () => {
+      this.updateStatistics();
+    });
   }
 
   handleSOCReset() {
     this.setState({
       socStart: this.defaultState.socStart,
       socEnd: this.defaultState.socEnd,
+    }, () => {
+      this.updateStatistics();
     });
-    this.updateStatistics();
   }
 
   updateStatistics() {
