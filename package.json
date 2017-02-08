@@ -8,6 +8,7 @@
     "react-scripts": "0.8.4"
   },
   "dependencies": {
+    "babel-polyfill": "^6.22.0",
     "compute-polynomial": "^1.1.0",
     "jest": "^18.1.0",
     "react": "^15.4.1",
