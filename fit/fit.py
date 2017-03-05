@@ -27,7 +27,7 @@ cars = [
         "label": "sparkev",
         "battTotal": 19.0,
         "battUsable": 17.4,
-        "efficiency": 150,
+        "efficiency": 132,
         "path": "sparkev.csv"
     },
     { 
@@ -37,7 +37,7 @@ cars = [
         "label": "leaf24",
         "battTotal": 24.0,
         "battUsable": 21.3,
-        "efficiency": 180,
+        "efficiency": 160,
         "path": "leaf24.csv"
     },
     { 
@@ -47,6 +47,7 @@ cars = [
         "label": "leaf30",
         "battTotal": 30,
         "battUsable": 27.5,
+        "efficiency": 160,
         "path": "leaf30.csv"
     },
     { 
@@ -56,6 +57,7 @@ cars = [
         "label": "bmwi3-33",
         "battTotal": 33,
         "battUsable": 28.2,
+        "efficiency": 154,
         "path": "bmwi3-33.csv"
     }
 ]

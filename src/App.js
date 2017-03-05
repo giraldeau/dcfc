@@ -77,7 +77,10 @@ const secondsToTime = (secs) => {
 const formatChargeTime = (secs) => {
   //secs = Math.ceil(secs / 60) * 60;
   const t = secondsToTime(secs);
-  var str = t.s + " s";
+  var str = "";
+  if ((secs / 3600) < 1) {
+    var str = t.s + " s";
+  }
   if ((secs / 60) > 1) {
     str = t.m + " m " + str;
   }
@@ -87,7 +90,7 @@ const formatChargeTime = (secs) => {
   return str;
 }
 
-class StatisticPannel extends Component {
+class StatisticTable extends Component {
   render() {
     var costPerKm = 0;
     if (this.props.range > 0) {
@@ -95,65 +98,48 @@ class StatisticPannel extends Component {
     }
 
     return (
-      <div className="ui horizontal statistics">
-        <div className="statistic">
-          <div className="value">
-            {formatChargeTime(this.props.time)}
-          </div>
-          <div className="label">
-            Time
-          </div>
-        </div>
-
-        <div className="statistic">
-          <div className="value">
-            {Math.max(0, this.props.range).toFixed(0)}
-          </div>
-          <div className="label">
-            added range (km)
-          </div>
-        </div>
-
-        <div className="statistic">
-          <div className="value">
-            {Math.max(0, this.props.kwh).toFixed(1)}
-          </div>
-          <div className="label">
-            kWh
-          </div>
-        </div>
-
-        <div className="statistic">
-          <div className="value">
-            {Math.max(0, this.props.cost).toFixed(2)}
-          </div>
-          <div className="label">
-            $
-          </div>
-        </div>
-
-        <div className="statistic">
-          <div className="value">
-            {Math.max(0, costPerKm).toFixed(4)}
-          </div>
-          <div className="label">
-            $/km
-          </div>
-        </div>
-
-      </div>
+      <table className="ui very basic collapsing celled table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Time</td>
+            <td>{formatChargeTime(this.props.time)}</td>
+          </tr>
+          <tr>
+            <td>Added range</td>
+            <td>{Math.max(0, this.props.range).toFixed(0)} km</td>
+          </tr>
+          <tr>
+            <td>Energy</td>
+            <td>{Math.max(0, this.props.kwh).toFixed(1)} kWh</td>
+          </tr>
+          <tr>
+            <td>Cost</td>
+            <td>{Math.max(0, this.props.cost).toFixed(2)} $</td>
+          </tr>
+          <tr>
+            <td>Cost per km</td>
+            <td>{Math.max(0, costPerKm).toFixed(4)} $</td>
+          </tr>
+        </tbody>
+      </table>
     );
   }
 }
 
-StatisticPannel.propTypes = {
+StatisticTable.propTypes = {
   kwh: React.PropTypes.number,
   time: React.PropTypes.number,
   cost: React.PropTypes.number,
   range: React.PropTypes.number,
 };
 
-StatisticPannel.defaultProps = {
+StatisticTable.defaultProps = {
   kwh: 0,
   time: 0,
   cost: 0,
@@ -218,8 +204,8 @@ class App extends Component {
   computeChargingTime(car, socStart, socEnd) {
     const e1 = car.battUsable * socStart / 100;
     const e2 = car.battUsable * socEnd / 100;
-    const t1 = polyval(car.f, e1);
-    const t2 = polyval(car.f, e2);
+    const t1 = polyval(car.polyfit, e1);
+    const t2 = polyval(car.polyfit, e2);
     return (t2 - t1);
   }
 
@@ -278,7 +264,7 @@ class App extends Component {
         <Button content='Reset' onClick={(event) => {this.handleReset()}}/>
 
         <Divider />
-        <StatisticPannel
+        <StatisticTable
           time={chargingTime}
           range={addedRange}
           cost={cost}
