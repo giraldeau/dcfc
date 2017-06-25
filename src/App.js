@@ -155,6 +155,7 @@ class App extends Component {
       socStart: 10,
       socEnd: 80,
       efficiency: carData[0].efficiency,
+      mode: "battery",
     }
 
     this.state = Object.assign({}, this.defaultState);
@@ -216,7 +217,7 @@ class App extends Component {
 
   render() {
     const socOptions = {
-      step: 1, 
+      step: 1,
       min: 0,
       max: 98,
       thumbSize: 18,
@@ -225,31 +226,61 @@ class App extends Component {
     const energy = car.battUsable * (this.state.socEnd - this.state.socStart) / 100;
     const chargingTime = this.computeChargingTime(car, this.state.socStart, this.state.socEnd);
     const cost = this.computeChargingCost(chargingTime, 10);
-    const addedRange = energy / this.state.efficiency * 1000;
+    const addedRange = energy / this.state.efficiency * 100
 
-    return (
-      <Container text>
-        <AppHeader title={"DCFC Time Calculator"} />
-        <CarSelector
-          options={this.carOptions}
-          defaultValue={this.state.carId}
-          onChange={(value) => {
-            this.handleCarChange(value);
-          }}/>
-        
-        <label>Battery at start: {this.state.socStart} %</label>
-        <ReactSimpleRange
-          {...socOptions}
-          defaultValue={this.state.socStart}
-          onChange={(event) => {this.handleSOCChange("socStart", event.value)}}
-        />
-
+    var endRangeSelect;
+    if (this.state.mode === "battery") {
+      endRangeSelect = (
+      <div>
         <label>Battery at end: {this.state.socEnd} %</label>
         <ReactSimpleRange
           {...socOptions}
           defaultValue={this.state.socEnd}
           onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
         />
+      </div>);
+    } else {
+      endRangeSelect = (
+        <div>
+          <label>Target range TODO: {(this.state.socEnd * car.battTotal / this.state.efficiency * 10).toFixed(0)} km</label>
+          <ReactSimpleRange
+            {...socOptions}
+            defaultValue={this.state.socEnd}
+            onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
+          />
+        </div>
+      );
+    }
+
+    return (
+
+      <Container text >
+        <AppHeader title={"DCFC Time Calculator"} />
+        <Segment basic textAlign="center">
+          <Button.Group>
+            <Button toggle
+              color={this.state.mode === "battery" ? "blue" : ""}
+              onClick={() => {this.setState({mode: "battery"});}}>Battery</Button>
+            <Button toggle
+              color={this.state.mode === "distance" ? "blue" : ""}
+              onClick={() => {this.setState({mode: "distance"});}}>Distance</Button>
+          </Button.Group>
+        </Segment>
+
+        <CarSelector
+            options={this.carOptions}
+            defaultValue={this.state.carId}
+            onChange={(value) => {
+              this.handleCarChange(value);
+            }}/>
+          <label>Battery at start: {this.state.socStart} %</label>
+          <ReactSimpleRange
+            {...socOptions}
+            defaultValue={this.state.socStart}
+            onChange={(event) => {this.handleSOCChange("socStart", event.value)}}
+        />
+
+        {endRangeSelect}
 
         <label>Efficiency: {this.state.efficiency} Wh/km</label>
         <ReactSimpleRange
