@@ -155,7 +155,6 @@ class App extends Component {
       socStart: 10,
       socEnd: 80,
       efficiency: carData[0].efficiency,
-      mode: "battery",
     }
 
     this.state = Object.assign({}, this.defaultState);
@@ -223,50 +222,15 @@ class App extends Component {
       thumbSize: 18,
     };
     const car = carData[this.state.carId];
-    const energy = car.battUsable * (this.state.socEnd - this.state.socStart) / 100;
+    const energy = car.battUsable * (this.state.socEnd - this.state.socStart) / 100 ;
     const chargingTime = this.computeChargingTime(car, this.state.socStart, this.state.socEnd);
     const cost = this.computeChargingCost(chargingTime, 10);
-    const addedRange = energy / this.state.efficiency * 100
-
-    var endRangeSelect;
-    if (this.state.mode === "battery") {
-      endRangeSelect = (
-      <div>
-        <label>Battery at end: {this.state.socEnd} %</label>
-        <ReactSimpleRange
-          {...socOptions}
-          defaultValue={this.state.socEnd}
-          onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
-        />
-      </div>);
-    } else {
-      endRangeSelect = (
-        <div>
-          <label>Target range TODO: {(this.state.socEnd * car.battTotal / this.state.efficiency * 10).toFixed(0)} km</label>
-          <ReactSimpleRange
-            {...socOptions}
-            defaultValue={this.state.socEnd}
-            onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
-          />
-        </div>
-      );
-    }
+    const addedRange = (energy * 1000) / this.state.efficiency;
+    const totalRange = car.battUsable * this.state.socEnd * 10 / this.state.efficiency;
 
     return (
-
       <Container text >
         <AppHeader title={"DCFC Time Calculator"} />
-        <Segment basic textAlign="center">
-          <Button.Group>
-            <Button toggle
-              color={this.state.mode === "battery" ? "blue" : ""}
-              onClick={() => {this.setState({mode: "battery"});}}>Battery</Button>
-            <Button toggle
-              color={this.state.mode === "distance" ? "blue" : ""}
-              onClick={() => {this.setState({mode: "distance"});}}>Distance</Button>
-          </Button.Group>
-        </Segment>
-
         <CarSelector
             options={this.carOptions}
             defaultValue={this.state.carId}
@@ -280,7 +244,12 @@ class App extends Component {
             onChange={(event) => {this.handleSOCChange("socStart", event.value)}}
         />
 
-        {endRangeSelect}
+        <label>Battery at end: {this.state.socEnd} % (Vehicule range: {totalRange.toFixed(0)} km)</label>
+        <ReactSimpleRange
+          {...socOptions}
+          defaultValue={this.state.socEnd}
+          onChange={(event) => {this.handleSOCChange("socEnd", event.value)}}
+        />
 
         <label>Efficiency: {this.state.efficiency} Wh/km</label>
         <ReactSimpleRange
