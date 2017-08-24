@@ -230,7 +230,7 @@ class App extends Component {
 
     return (
       <Container text >
-        <AppHeader title={"DCFC Time Calculator"} />
+        <AppHeader title={"DCFC Time Calculator Hello!"} />
         <CarSelector
             options={this.carOptions}
             defaultValue={this.state.carId}
